@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('employee_leave', function (Blueprint $table) {
-            $table->uuid()->primary();
+            $table->uuid('id')->primary();
             $table->foreignId('employee_id')->constrained('users')->cascadeOnDelete();
             $table->date('leave_date');
             $table->string('leave_type');
