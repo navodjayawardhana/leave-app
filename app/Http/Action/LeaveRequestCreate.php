@@ -4,12 +4,17 @@ namespace App\Http\Action;
 
 use App\Models\EmployeeLeave;
 use App\Models\User;
+use App\Services\LeaveNotificationService;
 use Exception;
 use Illuminate\Support\Facades\DB;
 
 class LeaveRequestCreate
 {
-    public function __invoke(string $userId, string $leaveDate,string $leaveType,string $leaveReason): EmployeeLeave
+    public function __construct(
+        private LeaveNotificationService $notificationService
+    ) {}
+
+    public function __invoke(string $userId, string $leaveDate, string $leaveType, string $leaveReason): EmployeeLeave
     {
         DB::beginTransaction();
         try {
@@ -35,10 +40,11 @@ class LeaveRequestCreate
                 'leave_status' => 'pending'
             ]);
 
+            $this->notificationService->sendLeaveRequestNotification($leave);
+
             DB::commit();
             return $leave;
-        }
-        catch (Exception $e) {
+        } catch (Exception $e) {
             DB::rollBack();
             throw $e;
         }

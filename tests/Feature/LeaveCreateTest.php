@@ -3,6 +3,7 @@
 use App\Http\Action\LeaveRequestCreate;
 use App\Models\EmployeeLeave;
 use App\Models\User;
+use App\Services\LeaveNotificationService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -15,15 +16,24 @@ class LeaveCreateTest extends TestCase
     private string $leaveDate;
     private string $leaveType;
     private string $leaveReason;
+    private LeaveNotificationService $notificationService;
 
     protected function setUp(): void
     {
         parent::setUp();
-        $this->leaveRequestCreate = new LeaveRequestCreate();
+        $this->notificationService = Mockery::mock(LeaveNotificationService::class);
+        $this->notificationService->shouldReceive('sendLeaveRequestNotification')->andReturn(null);
+        $this->leaveRequestCreate = new LeaveRequestCreate($this->notificationService);
         $this->user = User::factory()->create();
         $this->leaveDate = '2024-04-10';
         $this->leaveType = 'annual';
         $this->leaveReason = 'Vacation';
+    }
+
+    protected function tearDown(): void
+    {
+        Mockery::close();
+        parent::tearDown();
     }
 
     public function test_should_throw_when_user_not_found(): void
